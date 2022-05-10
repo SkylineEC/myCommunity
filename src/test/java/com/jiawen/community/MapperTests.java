@@ -1,7 +1,9 @@
 package com.jiawen.community;
 
 
+import com.jiawen.community.dao.DiscussPostMapper;
 import com.jiawen.community.dao.UserMapper;
+import com.jiawen.community.entity.DiscussPost;
 import com.jiawen.community.entity.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Date;
+import java.util.List;
 
 @SpringBootTest
 @ContextConfiguration(classes = CommunityApplication.class)
@@ -16,6 +19,9 @@ public class MapperTests {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private DiscussPostMapper discussPostMapper;
 
     @Test
     public User testSelectById(int id) {
@@ -51,6 +57,15 @@ public class MapperTests {
 
         rows = userMapper.updatePassword(150, "hello");
         System.out.println(rows);
+    }
+
+    @Test
+    public void testSelectPosts() {
+        List<DiscussPost> postList = discussPostMapper.selectDiscussPosts(103,1,10);
+        for(DiscussPost post : postList) {
+            System.out.println(post);
+        }
+        System.out.println(discussPostMapper.selectDiscussPostRows(103));
     }
 
 
