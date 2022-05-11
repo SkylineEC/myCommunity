@@ -156,7 +156,7 @@
 						<!--sequence可以产生一个数据 第一个参数是起始 第二个是终止-->
 						<!--active-->
 						<li th:class="|page-item ${i==page.current?'active':''}|" th:each="i:${#numbers.sequence(page.from,page.to)}">
-							<a class="page-link" href="#" th:text="${i}">1</a>
+							<a class="page-link" th:href="@{${page.path}(current=${i})}" th:text="${i}">1</a>
 						</li>
 						<!--如果当前是最后一页 就给它disable-->
 						<li th:class="|page-item ${page.current==page.total?'disabled':''}|">
