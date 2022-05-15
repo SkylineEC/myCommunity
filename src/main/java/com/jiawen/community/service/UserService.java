@@ -1,7 +1,9 @@
 package com.jiawen.community.service;
 
 import com.jiawen.community.CommunityApplication;
+import com.jiawen.community.dao.LoginTicketMapper;
 import com.jiawen.community.dao.UserMapper;
+import com.jiawen.community.entity.LoginTicket;
 import com.jiawen.community.entity.User;
 import com.jiawen.community.util.CommunityConstant;
 import com.jiawen.community.util.CommunityUtil;
@@ -32,6 +34,8 @@ public class UserService implements CommunityConstant {
    @Autowired
    private MailClient mailClient;
 
+   @Autowired
+   private LoginTicketMapper loginTicketMapper;
 
    //注入模板引擎
    @Autowired
@@ -83,6 +87,7 @@ public class UserService implements CommunityConstant {
        userFromDatabse = userMapper.selectByEmail(user.getEmail());
        if(userFromDatabse != null){
            map.put("emailMsg","邮箱已存在");
+           return map;
        }
 
        //账号密码邮箱都不为空 并且账号 邮箱都不存在
@@ -137,6 +142,63 @@ public class UserService implements CommunityConstant {
         }else {
             return ACTIVATION_FAILURE;
         }
+   }
+
+
+   /*
+   按照MD5进行加密 如果加密后的密码和MYSQL里面存的密码一致 就验证通过
+    */
+   public Map<String,Object> login(String username, String password,int expiredSeconds){
+       Map<String,Object> map = new HashMap<>();
+       //空值处理
+       if(StringUtils.isBlank(username)){
+           map.put("usernameMsg","账号不能为空");
+           return map;
+
+       }
+       if(StringUtils.isBlank(password)){
+           map.put("passwordMsg","密码不能为空");
+           return map;
+
+       }
+
+
+       //进行合法性验证
+       //输入username查一下看有没有
+       //然后看一下密码是否一致
+       User user = userMapper.selectByName(username);
+       if(user == null){
+           map.put("usernameMsg","账号不存在");
+           return map;
+       }
+       if(user.getStatus() == 0){
+           map.put("usernameMsg","账号未激活");
+           return map;
+
+       }
+       //说明账号存在并且激活
+       //验证密码
+       //对传入的明文密码进行加密
+       password = CommunityUtil.md5(password + user.getSalt());
+       if(!user.getPassword().equals(password)){
+           map.put("passwordMsg","密码不正确");
+           return map;
+       }
+
+       //生成登录凭证 服务器要记录
+       LoginTicket loginTicket = new LoginTicket();
+       loginTicket.setUserId(user.getId());
+       //Ticket就是一个随机字符串
+       loginTicket.setTicket(CommunityUtil.generateUUID());
+       loginTicket.setStatus(0);
+       loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
+       loginTicketMapper.insertLoginTicket(loginTicket);
+       //最后需要把凭证发给客户端
+       //浏览器只需要记录一个key(登录凭证)
+       //下次登陆的时候  如果服务器对上了LoginTicket 就获取了userID
+       map.put("ticket",loginTicket.getTicket());
+       return map;
+
    }
 
 }

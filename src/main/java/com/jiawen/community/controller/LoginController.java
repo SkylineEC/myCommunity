@@ -5,9 +5,11 @@ import com.google.code.kaptcha.Producer;
 import com.jiawen.community.entity.User;
 import com.jiawen.community.service.UserService;
 import com.jiawen.community.util.CommunityConstant;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.geom.RectangularShape;
@@ -44,7 +47,8 @@ public class LoginController implements CommunityConstant {
         return "/site/login";
     }
 
-
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
 
     //定义方法来注册请求，一定是POST请求
     @RequestMapping(path = "register",method = {RequestMethod.POST})
@@ -116,6 +120,48 @@ public class LoginController implements CommunityConstant {
         }
         catch (Exception e) {
             logger.error("生成验证码失败" + e.getMessage());
+        }
+
+    }
+
+
+    //我要处理表单提交的数据 就要用Post
+    @RequestMapping(path = "/login", method = RequestMethod.POST)
+    public String login(String username,
+                        String password,
+                        String code ,
+                        Boolean rememberme,
+                        Model model,
+                        HttpSession session,//验证码放到了session里面 需要从session把验证码取出来 如果登录成功了 需要ticket发放给客户端进行保存
+                        HttpServletResponse response){
+        //首先要判断验证码对不对
+        //之前session就设置了验证码
+        String kaptcha = (String) session.getAttribute("kaptcha");
+        if(StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)){
+            //验证码不区分大小写equalsIgnoreCase
+            model.addAttribute("codeMsg","验证码不正确");
+            return "/site/login";
+        }
+        //检查账号 密码
+        //判断是否用户勾上 记住我
+        int expiredSeconds = rememberme? REMEMBER_EXPIRED_SECONDS : DEFAULT_EXPIRED_SECONDS;
+        Map<String,Object> map = userService.login(username,password,expiredSeconds);
+        if(map.containsKey("ticket")){
+            //把ticket取出来 发送给客户端 让客户端存 也就是给客户端发送一个cookie 带上ticket
+            Cookie cookie = new Cookie("ticket",map.get("ticket").toString());
+            cookie.setPath(contextPath);
+            //设置cookie有效时间
+            cookie.setMaxAge(expiredSeconds);
+            response.addCookie(cookie);//服务端有cookie之后 就可以给浏览器了
+
+
+            //重定向到首页index
+            return "redirect:/index";
+        }else {
+            model.addAttribute("usernameMsg", map.get("usernameMsg"));
+            model.addAttribute("passwordMsg", map.get("passwordMsg"));
+            //如果不对 没有ticket
+            return "/site/login";
         }
 
     }
