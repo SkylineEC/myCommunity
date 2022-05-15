@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -145,6 +146,7 @@ public class LoginController implements CommunityConstant {
         //检查账号 密码
         //判断是否用户勾上 记住我
         int expiredSeconds = rememberme? REMEMBER_EXPIRED_SECONDS : DEFAULT_EXPIRED_SECONDS;
+        System.out.println(expiredSeconds);
         Map<String,Object> map = userService.login(username,password,expiredSeconds);
         if(map.containsKey("ticket")){
             //把ticket取出来 发送给客户端 让客户端存 也就是给客户端发送一个cookie 带上ticket
@@ -163,6 +165,18 @@ public class LoginController implements CommunityConstant {
             //如果不对 没有ticket
             return "/site/login";
         }
+
+    }
+
+    @RequestMapping(path = "/logout", method = RequestMethod.GET)
+    public String logout(@CookieValue("ticket") String ticket){
+        //首先浏览器要发送之前存的cookie给服务器
+        //浏览器是自动存储cookie的 所以这时候浏览器需要将cookie发送给服务器
+        //我们可以使用@CookieValue将cookie注入进去
+        userService.logout(ticket);
+        return "redirect:/login"; //重定向的时候 默认是GET请求
+        //下面一步是去前端配置超链接
+        //点击 "退出登录 " 就触发方法
 
     }
 }

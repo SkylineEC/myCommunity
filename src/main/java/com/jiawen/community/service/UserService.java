@@ -191,13 +191,19 @@ public class UserService implements CommunityConstant {
        //Ticket就是一个随机字符串
        loginTicket.setTicket(CommunityUtil.generateUUID());
        loginTicket.setStatus(0);
-       loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
+       loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000L));
        loginTicketMapper.insertLoginTicket(loginTicket);
        //最后需要把凭证发给客户端
        //浏览器只需要记录一个key(登录凭证)
        //下次登陆的时候  如果服务器对上了LoginTicket 就获取了userID
        map.put("ticket",loginTicket.getTicket());
        return map;
+
+   }
+
+   public void logout(String ticket){
+       //需要把凭证传过来给服务端
+       loginTicketMapper.updateStatus(ticket,1);
 
    }
 
