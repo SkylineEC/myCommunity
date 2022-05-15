@@ -1,9 +1,12 @@
 package com.jiawen.community.controller;
 
 
+import com.google.code.kaptcha.Producer;
 import com.jiawen.community.entity.User;
 import com.jiawen.community.service.UserService;
 import com.jiawen.community.util.CommunityConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,13 +14,24 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.awt.geom.RectangularShape;
+import java.awt.image.BufferedImage;
+import java.io.OutputStream;
 import java.util.Map;
 
 @Controller
 public class LoginController implements CommunityConstant {
 
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private Producer kaptchaProducer;
 
 
     @RequestMapping(path = "register",method = {RequestMethod.GET})
@@ -77,6 +91,32 @@ public class LoginController implements CommunityConstant {
             model.addAttribute("msg", "无效操作，激活码错误");
         }
         return "/site/operate-result";
+
+    }
+
+
+    //生成验证码的时候不能存在浏览器端 属于是敏感信息
+    //我们可以存到Session当中
+    @RequestMapping(path = "/kaptcha", method = RequestMethod.GET)
+    public void getKaptcha(HttpServletResponse response, HttpSession session) {
+        //生成验证码
+        String text = kaptchaProducer.createText();
+        BufferedImage image = kaptchaProducer.createImage(text);
+        //验证码存储到session当中
+        session.setAttribute("kaptcha", text);
+        //将图片输出给浏览器
+        //声明给浏览器返回的是什么格式的数据
+        response.setContentType("image/png");
+        //设置响应头
+        try{
+            OutputStream os = response.getOutputStream();
+            ImageIO.write(image,"png",os);
+
+
+        }
+        catch (Exception e) {
+            logger.error("生成验证码失败" + e.getMessage());
+        }
 
     }
 }
