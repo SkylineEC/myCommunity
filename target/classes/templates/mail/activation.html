@@ -1,20 +1,23 @@
 <!doctype html>
-<html lang="en">
+<!--首先声明是thymeleaf模板-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8">
-    <link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
-    <title>牛客网-激活账号</title>
+	<meta charset="utf-8">
+	<link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
+	<title>牛客网-激活账号</title>
 </head>
 <body>
-	<div>
-		<p>
-			<b>xxx@xxx.com</b>, 您好!
-		</p>
-		<p>
-			您正在注册牛客网, 这是一封激活邮件, 请点击 
-			<a href="#">http://www.nowcoder.com/activation/abcdefg123456.html</a>,
-			激活您的牛客账号!
-		</p>
-	</div>
+<div>
+	<p>
+	<!--一会儿要把email传给模板-->
+		<b th:text="${email}">xxx@xxx.com</b>, 您好!
+	</p>
+	<p>
+		欢迎您成为牛客网的一员，请点击下面的链接激活您的账号:
+		<a th:href="${url}">此链接</a>,
+		如果您无法点击，请将它复制到浏览器的地址栏中。
+
+	</p>
+</div>
 </body>
 </html>
