@@ -2,6 +2,7 @@ package com.jiawen.community.config;
 
 
 import com.jiawen.community.controller.intercepter.AlphaIntercepter;
+import com.jiawen.community.controller.intercepter.LoginRequiredIntercepter;
 import com.jiawen.community.controller.intercepter.LoginTicketIntercepter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private LoginTicketIntercepter loginTicketIntercepter;
 
+    @Autowired
+    private LoginRequiredIntercepter loginRequiredIntercepter;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         //不需要拦截静态资源 所以需要排除掉
@@ -31,6 +35,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/**/*.css","/**/*.jpg","/**/*.jpeg","/**/*.js");
                 //全部路径都要拦截
         //下一步是要在模板中进行处理 去前端改写index.header
+
+
+        //我希望处理谁 就在谁上面加上注解
+        registry.addInterceptor(loginRequiredIntercepter)
+                .excludePathPatterns("/**/*.css","/**/*.jpg","/**/*.jpeg","/**/*.js");
         WebMvcConfigurer.super.addInterceptors(registry);
     }
 }

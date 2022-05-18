@@ -228,7 +228,7 @@ public class UserService implements CommunityConstant {
 
    }
 
-   public Map<String,Object> resetPassword(String email,String realCode, String verifyCode, String password){
+   public Map<String,Object> forgetAndResetPassword(String email, String realCode, String verifyCode, String password){
        Map<String,Object> map =  new HashMap<>();
        if(email == null){
            map.put("emailMsg","邮箱为空");
@@ -260,6 +260,12 @@ public class UserService implements CommunityConstant {
    //通过ticket凭证查询代码
     public LoginTicket findLoginTicket(String ticket){
        return loginTicketMapper.selectByTicket(ticket);
+    }
+
+
+    //返回更新的行数
+    public int updateHeader(int userId, String headerUrl){
+       return userMapper.updateHeader(userId,headerUrl);
     }
 
 

@@ -19,7 +19,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.awt.geom.RectangularShape;
 import java.awt.image.BufferedImage;
 import java.io.OutputStream;
 import java.util.Map;
@@ -214,7 +213,7 @@ public class LoginController implements CommunityConstant {
         String verifyCode =request.getParameter("verifycode");
         String realCode = (String) session.getAttribute("code");
         String email = (String)session.getAttribute("email");
-        Map<String,Object> map = userService.resetPassword(email,realCode,verifyCode,password);
+        Map<String,Object> map = userService.forgetAndResetPassword(email,realCode,verifyCode,password);
         if(map.size() == 0){
             //修改密码成功
             return "site/login";
