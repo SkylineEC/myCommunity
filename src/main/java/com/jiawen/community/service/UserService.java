@@ -248,7 +248,7 @@ public class UserService implements CommunityConstant {
            return map;
        }else{
            User user = findUserByEmail(email);
-
+           password = CommunityUtil.md5(password + user.getSalt());
            userMapper.updatePassword(user.getId(),password);
        }
 
@@ -256,6 +256,11 @@ public class UserService implements CommunityConstant {
        return map;
 
    }
+
+   //通过ticket凭证查询代码
+    public LoginTicket findLoginTicket(String ticket){
+       return loginTicketMapper.selectByTicket(ticket);
+    }
 
 
 
