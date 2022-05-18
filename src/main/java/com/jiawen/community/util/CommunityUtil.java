@@ -1,10 +1,13 @@
 package com.jiawen.community.util;
 
 
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.DigestUtils;
 
 import java.security.DigestException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CommunityUtil {
 
@@ -29,6 +32,40 @@ public class CommunityUtil {
         //String转bytes
         //加密后的字符串
         return DigestUtils.md5DigestAsHex(key.getBytes());
+    }
+
+    /**
+     *
+     * @param code 编号
+     * @param msg 消息
+     * @param map 业务数据
+     * @return
+     */
+    public static String getJsonString(int code, String msg, Map<String, Object> map){
+        //参数封装到json对象里面
+        JSONObject json = new JSONObject();
+        json.put("code",code);
+        json.put("msg",msg);
+        if(map != null){
+            for(String key : map.keySet()){
+                json.put(key,map.get(key));
+            }
+        }
+        return json.toJSONString();
+    }
+
+    public static String getJsonString(int code, String msg){
+        return getJsonString(code,msg,null);
+    }
+
+    public static String getJsonString(int code){
+        return getJsonString(code,null,null);
+    }
+    public static void main(String[] args){
+        Map<String,Object> map = new HashMap<>();
+        map.put("name","Zhangsan");
+        map.put("age",25);
+        System.out.println(getJsonString(0,"ok",map));
     }
 
 }

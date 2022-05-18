@@ -208,4 +208,14 @@ public class AlphaController {
         System.out.println(session.getAttribute("id"));
         return "get session";
     }
+
+    @RequestMapping(path = "/ajax" , method = RequestMethod.POST)
+    //因为是异步请求 所以不返回网页 只返回字符串
+    @ResponseBody
+    public String testAjax(String name,int age){
+        System.out.println(name);
+        System.out.println(age);
+        return CommunityUtil.getJsonString(0,"操作成功");
+    }
+
 }
