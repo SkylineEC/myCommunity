@@ -1,6 +1,5 @@
 package com.jiawen.community.service;
 
-import com.jiawen.community.CommunityApplication;
 import com.jiawen.community.dao.LoginTicketMapper;
 import com.jiawen.community.dao.UserMapper;
 import com.jiawen.community.entity.LoginTicket;
@@ -9,14 +8,12 @@ import com.jiawen.community.util.CommunityConstant;
 import com.jiawen.community.util.CommunityUtil;
 import com.jiawen.community.util.MailClient;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import javax.xml.transform.Templates;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +45,14 @@ public class UserService implements CommunityConstant {
    @Value("${server.servlet.context-path}")
    private String contextPath;
 
-   //返回的信息具有多种情况
+   public User findUserByEmail(String email){
+       return userMapper.selectByEmail(email);
+   }
+    public User findUserById(int id) {
+        return userMapper.selectById(id);
+    }
+
+    //返回的信息具有多种情况
    public Map<String,Object> register(User user){
 
        Map<String,Object> map = new HashMap<>();
@@ -129,9 +133,26 @@ public class UserService implements CommunityConstant {
        return map;
 
    }
-   public User findUserById(int id){
-           return userMapper.selectById(id);
+
+   public Map<String,Object> sendForgetEmail(String email){
+       User user = userMapper.selectByEmail(email);
+       Map<String,Object> map = new HashMap<>();
+       if(user == null){
+           map.put("emailMsg","邮箱不存在");
+           return map;
        }
+
+       Context context = new Context();
+       context.setVariable("username",user.getUsername());
+       String code = CommunityUtil.generateUUID().substring(6);
+       context.setVariable("code",code);
+       String content = templateEngine.process("mail/forget",context);
+       mailClient.sendMail(user.getEmail(),"MyCommunity Reset Password",content);
+       map.put("code",code);
+       return map;
+   }
+
+
    public int activation(int userId, String code) {
         User user = userMapper.selectById(userId);
         if(user.getStatus() == 1){
@@ -206,5 +227,36 @@ public class UserService implements CommunityConstant {
        loginTicketMapper.updateStatus(ticket,1);
 
    }
+
+   public Map<String,Object> resetPassword(String email,String realCode, String verifyCode, String password){
+       Map<String,Object> map =  new HashMap<>();
+       if(email == null){
+           map.put("emailMsg","邮箱为空");
+           return map;
+       }
+       if(realCode == null){
+           map.put("codeMsg","会话中没有验证码");
+           return map;
+       }
+       if(verifyCode == null){
+           map.put("codeMsg","输入验证码为空");
+           return map;
+       }
+
+       if(!verifyCode.equals(realCode)){
+           map.put("errorMsg","验证码错误,请重新输入");
+           return map;
+       }else{
+           User user = findUserByEmail(email);
+
+           userMapper.updatePassword(user.getId(),password);
+       }
+
+
+       return map;
+
+   }
+
+
 
 }

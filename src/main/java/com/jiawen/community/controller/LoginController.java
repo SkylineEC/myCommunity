@@ -12,13 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.geom.RectangularShape;
@@ -179,4 +177,59 @@ public class LoginController implements CommunityConstant {
         //点击 "退出登录 " 就触发方法
 
     }
+    @RequestMapping(path = "/forget" , method = RequestMethod.GET)
+    public String forget(Model model){
+        return "site/forget";
+    }
+
+    @RequestMapping(path = "/forgotAndSendEmail/{email}", method = RequestMethod.GET)
+
+    public String forgotAndSendEmail(Model model,
+                                     HttpSession session,
+                                     @PathVariable("email") String email
+    ){
+        Map<String,Object> map = userService.sendForgetEmail(email);
+        if(map.containsKey("emailMsg")){
+            session.setAttribute("email",email);
+
+            model.addAttribute("emailMsg","邮箱不存在");
+            return "/mail/forget";
+        }else {
+            //如果邮箱存在
+            String code = (String) map.get("code");
+            session.setAttribute("email",email);
+            session.setAttribute("code",code);
+        }
+
+        return "/site/forget";
+
+    }
+
+    @RequestMapping(path = "/resetPassword", method = RequestMethod.POST)
+    public String resetPassword(Model model,
+                                HttpSession session,
+                                HttpServletRequest request){
+
+        String password =request.getParameter("your-password");
+        String verifyCode =request.getParameter("verifycode");
+        String realCode = (String) session.getAttribute("code");
+        String email = (String)session.getAttribute("email");
+        Map<String,Object> map = userService.resetPassword(email,realCode,verifyCode,password);
+        if(map.size() == 0){
+            //修改密码成功
+            return "site/login";
+        }else{
+            model.addAttribute("codeMsg", map.get("codeMsg"));
+            model.addAttribute("emailMsg", map.get("emailMsg"));
+            model.addAttribute("errorMsg", map.get("errorMsg"));
+            return "site/forget";
+        }
+
+
+
+    }
+
+
+
+
 }
