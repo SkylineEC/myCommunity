@@ -3,6 +3,7 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/src/main/resources/mapper/comment-mapper.xml" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/src/main/resources/mapper/discusspost-mapper.xml" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/message-mapper.xml" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/src/main/resources/mapper/user-mapper.xml" dialect="GenericSQL" />
   </component>
 </project>
