@@ -16,6 +16,8 @@ public class RedisKeyUtil {
     //他好统计他的粉丝 我好统计我关注的目标
     private static final String PREFIX_FOLLOWER = "follower";
 
+    private static final String 
+
     // 某个实体的赞
     // like:entity:entityType:entityId -> set(userId)
     public static String getEntityLikeKey(int entityType, int entityId) {
@@ -45,5 +47,7 @@ public class RedisKeyUtil {
     public static String getFollowerKey(int entityType, int entityId) {
         return PREFIX_FOLLOWER + SPLIT + entityType + SPLIT + entityId;
     }
+
+
 
 }
