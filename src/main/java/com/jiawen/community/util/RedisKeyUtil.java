@@ -4,6 +4,8 @@ public class RedisKeyUtil {
 
     private static final String SPLIT = ":";
     private static final String PREFIX_ENTITY_LIKE = "like:entity";
+
+    //代表用户收到的赞
     private static final String PREFIX_USER_LIKE = "like:user";
 
     // 某个实体的赞
