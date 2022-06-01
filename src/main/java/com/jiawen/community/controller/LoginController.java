@@ -5,11 +5,14 @@ import com.google.code.kaptcha.Producer;
 import com.jiawen.community.entity.User;
 import com.jiawen.community.service.UserService;
 import com.jiawen.community.util.CommunityConstant;
+import com.jiawen.community.util.CommunityUtil;
+import com.jiawen.community.util.RedisKeyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +25,7 @@ import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Controller
 public class LoginController implements CommunityConstant {
@@ -47,6 +51,9 @@ public class LoginController implements CommunityConstant {
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     //定义方法来注册请求，一定是POST请求
     @RequestMapping(path = "register",method = {RequestMethod.POST})
@@ -100,12 +107,25 @@ public class LoginController implements CommunityConstant {
     //生成验证码的时候不能存在浏览器端 属于是敏感信息
     //我们可以存到Session当中
     @RequestMapping(path = "/kaptcha", method = RequestMethod.GET)
-    public void getKaptcha(HttpServletResponse response, HttpSession session) {
+    public void getKaptcha(HttpServletResponse response/* , HttpSession session */) {
         //生成验证码
         String text = kaptchaProducer.createText();
         BufferedImage image = kaptchaProducer.createImage(text);
         //验证码存储到session当中
-        session.setAttribute("kaptcha", text);
+//        session.setAttribute("kaptcha", text);
+        //验证码的归属者
+        String kaptchaOwner = CommunityUtil.generateUUID();
+        Cookie cookie = new Cookie("kaptchaOwner",kaptchaOwner);
+        cookie.setMaxAge(60); //验证码的失效时间
+        cookie.setPath(contextPath);
+        response.addCookie(cookie);
+
+        //将验证码存到redis
+        String redisKey = RedisKeyUtil.getKaptchaKey(kaptchaOwner);
+        //设置有效时间
+        redisTemplate.opsForValue().set(redisKey,text,60, TimeUnit.SECONDS);
+
+
         //将图片输出给浏览器
         //声明给浏览器返回的是什么格式的数据
         response.setContentType("image/png");
@@ -123,6 +143,16 @@ public class LoginController implements CommunityConstant {
     }
 
 
+    /**
+     *
+     * @param username
+     * @param password
+     * @param code
+     * @param rememberme
+     * @param model
+     * @param response
+     * @return
+     */
     //我要处理表单提交的数据 就要用Post
     @RequestMapping(path = "/login", method = RequestMethod.POST)
     public String login(String username,
@@ -130,11 +160,22 @@ public class LoginController implements CommunityConstant {
                         String code ,
                         Boolean rememberme,
                         Model model,
-                        HttpSession session,//验证码放到了session里面 需要从session把验证码取出来 如果登录成功了 需要ticket发放给客户端进行保存
-                        HttpServletResponse response){
+                        /*HttpSession session,//验证码放到了session里面 需要从session把验证码取出来 如果登录成功了 需要ticket发放给客户端进行保存*/
+                        HttpServletResponse response,
+                        @CookieValue("kaptchaOwner") String kaptchaOwner //如果要从Cookie当中取 需要增加一个注解
+    ){
         //首先要判断验证码对不对
         //之前session就设置了验证码
-        String kaptcha = (String) session.getAttribute("kaptcha");
+//        String kaptcha = (String) session.getAttribute("kaptcha");
+        //kaptcha需要从redis当中取
+
+        String kaptcha = null;
+        //这时候需要取kaptchaKey 这就需要kapthaOwner (临时用户)
+        //需要从cookie里面取
+        if(StringUtils.isNotBlank(kaptchaOwner)){
+            String redisKey = RedisKeyUtil.getKaptchaKey(kaptchaOwner);
+            kaptcha = (String)redisTemplate.opsForValue().get(redisKey);
+        }
         if(StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)){
             //验证码不区分大小写equalsIgnoreCase
             model.addAttribute("codeMsg","验证码不正确");
