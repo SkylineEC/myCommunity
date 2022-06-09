@@ -1,7 +1,9 @@
 package com.jiawen.community.controller;
 
+import com.jiawen.community.entity.Event;
 import com.jiawen.community.entity.Page;
 import com.jiawen.community.entity.User;
+import com.jiawen.community.event.EventProducer;
 import com.jiawen.community.service.FollowService;
 import com.jiawen.community.service.UserService;
 import com.jiawen.community.util.CommunityConstant;
@@ -30,12 +32,28 @@ public class FollowController implements CommunityConstant {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EventProducer eventProducer;
+
     @RequestMapping(path = "/follow", method = RequestMethod.POST)
     @ResponseBody
     public String follow(int entityType, int entityId) {
         User user = hostHolder.getUser();
 
         followService.follow(user.getId(), entityType, entityId);
+
+        // 触发关注事件
+        Event event = new Event()
+                .setTopic(TOPIC_FOLLOW)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(entityType)
+                .setEntityId(entityId)
+                .setEntityUserId(entityId);
+        //在这里不需要set PostId
+        eventProducer.fireEvent(event);
+
+
+
 
         return CommunityUtil.getJsonString(0, "已关注!");
     }
