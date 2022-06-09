@@ -1,4 +1,4 @@
-package com.jiawen.community.controller.intercepter;
+package com.jiawen.community.controller.interceptor;
 
 
 import com.jiawen.community.entity.LoginTicket;
@@ -11,13 +11,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 
 @Component
-public class LoginTicketIntercepter implements HandlerInterceptor {
+public class LoginTicketInterceptor implements HandlerInterceptor {
     //在请求一开始就获取ticket 来查找有没有对应的user
     //为什么一开始就做? 因为在请求的时候 随时都可能调取用户数据
 

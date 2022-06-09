@@ -1,4 +1,4 @@
-package com.jiawen.community.controller.intercepter;
+package com.jiawen.community.controller.interceptor;
 
 
 import org.slf4j.Logger;
@@ -12,9 +12,9 @@ import javax.servlet.http.HttpServletResponse;
 
 
 @Component
-public class AlphaIntercepter implements HandlerInterceptor {
+public class AlphaInterceptor implements HandlerInterceptor {
 
-    private static final Logger logger = LoggerFactory.getLogger(AlphaIntercepter.class);
+    private static final Logger logger = LoggerFactory.getLogger(AlphaInterceptor.class);
     /*
     在controller之前执行 返回的是布尔值 是否执行
      */

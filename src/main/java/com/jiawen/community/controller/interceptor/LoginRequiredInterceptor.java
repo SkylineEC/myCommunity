@@ -1,4 +1,4 @@
-package com.jiawen.community.controller.intercepter;
+package com.jiawen.community.controller.interceptor;
 
 
 import com.jiawen.community.annotation.LoginRequired;
@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 
 @Component
-public class LoginRequiredIntercepter implements HandlerInterceptor {
+public class LoginRequiredInterceptor implements HandlerInterceptor {
 
     @Autowired
     private HostHolder hostHolder;
