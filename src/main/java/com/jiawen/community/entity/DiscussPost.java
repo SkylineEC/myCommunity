@@ -1,31 +1,44 @@
 package com.jiawen.community.entity;
 
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
 import java.util.Date;
 
 
-
+@Document(indexName = "discusspost", shards = 6, replicas = 3)
 public class DiscussPost {
-
+    @Id
     private int id;
-
+    @Field(type = FieldType.Integer)
     private int userId;
-
+    //存储解析器 和搜索解析器  将一句话拆分成多个词条 来扩大搜索范围
+    @Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_smart")
     private String title;
 
     //帖子的内容
+    @Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_smart")
     private String content;
 
+    @Field(type = FieldType.Integer)
     //0-普通; 1-置顶;
     private int type;
 
-
+    @Field(type = FieldType.Integer)
     //0-正常; 1-精华; 2-拉黑;
     private int status;
+
+    @Field(type = FieldType.Date)
     private Date createTime;
 
+    @Field(type = FieldType.Integer)
     private int commentCount;
     // 热度排名
+
+    @Field(type = FieldType.Double)
     private double score;
 
     public int getId() {
